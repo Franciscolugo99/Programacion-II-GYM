@@ -1,4 +1,7 @@
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
 
 public class Conexion {
 
@@ -29,24 +32,18 @@ public class Conexion {
         return conn;
     }
 
-    public void cerrarConex(Statement statement, ResultSet query) throws SQLException {
+    public static void cerrarConex() throws SQLException {
         try {
-            statement.close();
-            query.close();
+            System.out.println("La connexion se cerro ");
             conn.close();
-
-        }catch (Exception e){
-
-            statement.close();
-            query.close();
+        } catch (Exception e) {
+            System.out.println("La connexion se cerro ");
             conn.close();
-
         } finally {
             conn.close();
         }
 
     }
-
 
     public static Conexion getInstancia(){
         if (instancia == null){

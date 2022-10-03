@@ -1,12 +1,12 @@
-
-
+import java.sql.*;
 import java.util.Objects;
+import java.util.Scanner;
 
 public class Cliente {
     private String nombre;
     private String apellido;
     private int edad;
-    private int DNI;
+    private int dni;
 
     private int plan;
 
@@ -18,17 +18,39 @@ public class Cliente {
         this.nombre = nombre;
         this.apellido = apellido;
         this.edad = edad;
-        this.DNI = DNI;
+        this.dni = DNI;
         this.plan = plan;
 
     }
 
-    public int getDNI() {
-        return DNI;
+    public static void buscarCliente(int dni) {
+        try {
+            Connection conn = Conexion.getInstancia().conectar();
+            Scanner Leer2 = new Scanner(System.in);
+            String queryBuscar = "SELECT * From Clientes where DNI =" + dni;
+            Statement consulta = conn.createStatement();
+            ResultSet registro = consulta.executeQuery(queryBuscar);
+            if (registro.next()) {
+                System.out.println(registro.getInt(1) + " #Nombre:" + registro.getString(2) +
+                        " #Apellido:" + registro.getString(3) + " #Edad:" + registro.getInt(4) +
+                        " #DNI:" + registro.getInt(5) + " #Couta:" + registro.getInt(6));
+                System.out.println(" ");
+                System.out.println("Ingrese la nueva Couta");
+                String couta = Leer2.nextLine();
+                String queryUp = "UPDATE `gym`.`Clientes` SET Couta = '" + couta + "' WHERE (`DNI` =" + dni + ")";
+                int countUpdate = conn.prepareStatement(queryUp).executeUpdate();
+                System.out.println("Cambios realizados:" + countUpdate);
+            } else {
+                System.out.println("DNI de cliente no encontrado");
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public void setDNI(int DNI) {
-        this.DNI = DNI;
+    public int getDni() {
+        return dni;
     }
 
     public String getNombre() {
@@ -63,12 +85,8 @@ public class Cliente {
         this.plan = plan;
     }
 
-    public void msjDeRegistro() {
-        System.out.println("Nuevo Cliente Registrado Correctamente");
-    }
-
-    public void msjDeeliminar() {
-        System.out.println(" Cliente Eliminado Correctamente");
+    public void setDni(int dni) {
+        this.dni = dni;
     }
 
     @Override
@@ -77,14 +95,29 @@ public class Cliente {
                 "nombre='" + nombre + '\'' +
                 ", apellido='" + apellido + '\'' +
                 ", edad=" + edad +
-                ", DNI=" + DNI +
+                ", DNI=" + dni +
                 ", plan=" + plan +
                 '}';
     }
 
+    public void saveClient(int f) {
+        try {
+            Connection con = Conexion.getInstancia().conectar();
+            PreparedStatement QueryInsert = con.prepareStatement("Insert into Clientes value (?,?,?,?,?,?)");
+            QueryInsert.setInt(1, f);
+            QueryInsert.setString(2, nombre);
+            QueryInsert.setString(3, apellido);
+            QueryInsert.setInt(4, edad);
+            QueryInsert.setInt(5, dni);
+            QueryInsert.setInt(6, plan);
+            int clienteInsert = QueryInsert.executeUpdate();
+        } catch (SQLException ex) {
+            System.out.println("Error");
+        }
+    }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getDNI());
+        return Objects.hash(getDni());
     }
 }
