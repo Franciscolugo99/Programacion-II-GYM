@@ -34,14 +34,17 @@ public class Conexion {
 
     public static void cerrarConex() throws SQLException {
         try {
-            System.out.println("La connexion se cerro ");
+            System.out.println("La conexión se cerro ");
             conn.close();
         } catch (Exception e) {
-            System.out.println("La connexion se cerro ");
+           /* System.out.println("La connexion se cerro ");
             conn.close();
-        } finally {
+            */
+
+        }/* finally {
             conn.close();
         }
+        */
 
     }
 

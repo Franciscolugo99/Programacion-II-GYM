@@ -1,25 +1,28 @@
+import java.io.Serializable;
 import java.sql.*;
 import java.util.Objects;
 import java.util.Scanner;
 
-public class Cliente {
+public class Cliente implements Serializable {
     private String nombre;
     private String apellido;
     private int edad;
     private int dni;
 
     private int plan;
-
+    private int estado;
 
     public Cliente() {
     }
 
-    public Cliente(String nombre, String apellido, int edad, int DNI, int plan) {
+
+    public Cliente(String nombre, String apellido, int edad, int DNI, int plan ,int estado) {
         this.nombre = nombre;
         this.apellido = apellido;
         this.edad = edad;
         this.dni = DNI;
         this.plan = plan;
+        this.estado = estado;
 
     }
 
@@ -88,6 +91,15 @@ public class Cliente {
     public void setDni(int dni) {
         this.dni = dni;
     }
+
+    public int getEstado() {
+        return estado;
+    }
+
+    public void setEstado(int estado) {
+        this.estado = estado;
+    }
+
 
     @Override
     public String toString() {

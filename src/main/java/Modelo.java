@@ -1,14 +1,21 @@
+import java.io.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class Modelo {
+
     static Scanner Leer = new Scanner(System.in);
     static Scanner Leer2 = new Scanner(System.in);
 
 
     public Modelo() {
+    }
+
+    public static Connection conctarBD() throws SQLException {
+        Connection conn = Conexion.getInstancia().conectar();
+        return conn;
     }
 
     public   void buscarCliente (Connection conn , int dni) {
@@ -38,7 +45,7 @@ public class Modelo {
 
     }
 
-    public int recupararID(Connection con) {
+    public static int recupararID(Connection con) {
         int id = 1;
         try {
             ResultSet Query;
@@ -53,8 +60,8 @@ public class Modelo {
     }
 
 
-    public void eliminarCliente(String rem) {
-        String queryDL = "DELETE FROM `gym`.`Clientes` WHERE (`DNI` =" + rem + ")";
+    public static void eliminarCliente(String rem) {
+        String queryDL = "UPDATE `gym`.`clientes` SET `Estado` = '1' WHERE (`DNI` =" + rem + ")";
         try {
             Connection con = Conexion.getInstancia().conectar();
             Statement statement = con.createStatement();
@@ -67,27 +74,33 @@ public class Modelo {
 
     }
 
-    public void saveClient(Cliente c, int f) {
+    public static boolean saveClient(Cliente c) {
+        boolean salida;
         try {
             Connection con = Conexion.getInstancia().conectar();
-            PreparedStatement QueryInsert = con.prepareStatement("Insert into Clientes value (?,?,?,?,?,?)");
-            QueryInsert.setInt(1, f);
+            PreparedStatement QueryInsert = con.prepareStatement("Insert into Clientes value (?,?,?,?,?,?,?)");
+            QueryInsert.setString(1, null);
             QueryInsert.setString(2, c.getNombre());
             QueryInsert.setString(3, c.getApellido());
             QueryInsert.setInt(4, c.getEdad());
             QueryInsert.setInt(5, c.getDni());
             QueryInsert.setInt(6, c.getPlan());
+            QueryInsert.setInt(7, c.getEstado());
             int clienteInsert = QueryInsert.executeUpdate();
+            salida = true;
+            //--------------------------------------------
         } catch (SQLException ex) {
             System.out.println("Error");
+            salida = false;
         }
+        return salida;
     }
 
     public static List<Cliente> recuperarClientes() {
         List<Cliente> result = new ArrayList<>();
         try {
             Connection conn = Conexion.getInstancia().conectar();
-            ResultSet rs = conn.prepareStatement("Select * from Clientes;").executeQuery();
+            ResultSet rs = conn.prepareStatement("Select * from Clientes where Estado = 1;").executeQuery();
             while (rs.next()) {
                 Cliente cliente = new Cliente();
                 cliente.setNombre(rs.getString(2));
@@ -97,8 +110,11 @@ public class Modelo {
                 cliente.setPlan(rs.getInt(6));
                 result.add(cliente);
             }
+
         } catch (SQLException ex) {
-            System.out.println("Error");
+            System.out.println("Error Sql, recuperado del txt ");
+             result = Modelo.recuperarTxt();
+
         }
         return result;
     }
@@ -123,6 +139,83 @@ public class Modelo {
             throw new RuntimeException(e);
         }
     }
+
+
+    // Base de datos txt serializable
+
+    public static void guardarTxt(Cliente o){
+        ArrayList<Cliente> clientesTxt = new ArrayList<>();
+        clientesTxt.addAll(Modelo.recuperarTxt());
+        clientesTxt.add(o);
+        try {
+            ObjectOutputStream escribiendoFihcero= new ObjectOutputStream(new FileOutputStream("C:/MisFicheros/cliente.txt"));
+            escribiendoFihcero.writeObject(clientesTxt);
+            escribiendoFihcero.close();
+        }catch (Exception e){
+            System.out.println("Fallo la conexion del txt guardar");
+        }
+    }
+    public static void guardarTxt2(List <Cliente> Lc){
+        ArrayList<Cliente> clientesTxt = (ArrayList<Cliente>) Lc;
+        try {
+            ObjectOutputStream escribiendoFihcero= new ObjectOutputStream(new FileOutputStream("C:/MisFicheros/cliente.txt"));
+            escribiendoFihcero.writeObject(Lc);
+            escribiendoFihcero.close();
+        }catch (Exception e){
+            System.out.println("Fallo la conexion del txt guardar");
+        }
+    }
+
+    public static List<Cliente> recuperarTxt() {
+        List<Cliente> recuperarTxt = new ArrayList<>();
+
+        try {
+            ObjectInputStream recuperandoFichero = new ObjectInputStream(new FileInputStream("C:/MisFicheros/cliente.txt"));
+            recuperarTxt = (ArrayList<Cliente>) recuperandoFichero.readObject();
+
+        } catch (Exception e) {
+            System.out.println("Fallo la conexion del txt recuperar");
+        }
+        return recuperarTxt;
+    }
+
+// 46253381
+    public static List<Cliente> buscarClienteTxt(int dni, String couta) {
+        var cli = recuperarTxt();
+        try {
+            for (int i = 0; i < cli.size(); i++) {
+                if (cli.get(i).getDni() == dni) {
+                    cli.get(i).setPlan(Integer.parseInt(couta));
+                    System.out.println("Encontrado");
+                    System.out.println(cli.get(i));
+                    guardarTxt2(cli);
+                    break;
+                }else {
+                    System.out.println("no econtrado");
+                }
+            }
+            return cli;
+        } catch (Exception e) {
+            return cli;
+        }
+
+    }
+
+    public static  void eliminarClienteTxt (String dni){
+        var clientes = recuperarTxt();
+        for (int i = 0; i <clientes.size(); i++) {
+            if (Integer.parseInt(dni) == clientes.get(i).getDni()) {
+                clientes.remove(i);
+                System.out.println("Eliminado correctamente");
+                guardarTxt2(clientes);
+                break;
+            }else {
+                System.out.println("El usuario no fue encontrado");
+            }
+        }
+
+    }
+
 
 
 }
