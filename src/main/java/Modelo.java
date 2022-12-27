@@ -1,4 +1,7 @@
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -6,7 +9,6 @@ import java.util.Scanner;
 
 public class Modelo {
 
-    static Scanner Leer = new Scanner(System.in);
     static Scanner Leer2 = new Scanner(System.in);
 
 
@@ -61,7 +63,7 @@ public class Modelo {
 
 
     public static void eliminarCliente(String rem) {
-        String queryDL = "UPDATE `gym`.`clientes` SET `Estado` = '1' WHERE (`DNI` =" + rem + ")";
+        String queryDL = "UPDATE `gym`.`clientes` SET `Estado` = '2' WHERE (`DNI` =" + rem + ")";
         try {
             Connection con = Conexion.getInstancia().conectar();
             Statement statement = con.createStatement();
@@ -69,7 +71,8 @@ public class Modelo {
             System.out.println("Cliente Eliminado");
 
         } catch (SQLException e) {
-            System.out.println("Fallo eliminar de la base de datos");
+            System.out.println("Fallo eliminar de la base de datos sql eliminado e txt");
+            eliminarClienteTxt(rem);
         }
 
     }
@@ -90,10 +93,27 @@ public class Modelo {
             salida = true;
             //--------------------------------------------
         } catch (SQLException ex) {
-            System.out.println("Error");
+            System.out.println("Error de Sql guardado en txt");
+            Modelo.guardarTxt(c);
             salida = false;
         }
         return salida;
+    }
+
+    public static int buscarDni(String rem) {
+        String query = "select * From clientes where (`DNI` =" + rem + ") and Estado =1";
+        int contador = 0;
+        try {
+            Connection conn = Conexion.getInstancia().conectar();
+            ResultSet rs = conn.prepareStatement(query).executeQuery();
+            while (rs.next()) {
+                contador++;
+            }
+        } catch (SQLException e) {
+           System.out.println("Fallo la BD sql buscando en txt");
+            contador = buscarDniExistenteTxt(rem);
+        }
+        return contador;
     }
 
     public static List<Cliente> recuperarClientes() {
@@ -122,7 +142,7 @@ public class Modelo {
     public static void buscarCliente(int dni, String couta) {
         try {
             Connection conn = Conexion.getInstancia().conectar();
-            String queryBuscar = "SELECT * From Clientes where DNI =" + dni;
+            String queryBuscar = "SELECT * From Clientes where DNI = " +dni+ " and Estado = 1;" ;
             Statement consulta = conn.createStatement();
             ResultSet registro = consulta.executeQuery(queryBuscar);
             if (registro.next()) {
@@ -136,6 +156,8 @@ public class Modelo {
             }
 
         } catch (SQLException e) {
+            System.out.println("Error de Sql buscado e txt");
+            buscarClienteTxt(dni, couta);
             throw new RuntimeException(e);
         }
     }
@@ -214,6 +236,20 @@ public class Modelo {
             }
         }
 
+    }
+    public static  int buscarDniExistenteTxt (String dni){
+        int contador =0;
+        var clientes = recuperarTxt();
+        for (int i = 0; i <clientes.size(); i++) {
+            if (Integer.parseInt(dni) == clientes.get(i).getDni()) {
+               contador++;
+                break;
+            }else {
+                System.out.println("El usuario no fue encontrado");
+                contador =0;
+            }
+        }
+        return contador;
     }
 
 
